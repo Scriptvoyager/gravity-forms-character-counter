@@ -1,4 +1,5 @@
 # character-counter-for-gravity-forms
+
 The "Character Counter for Gravity Forms" is a practical WordPress plugin that enhances the functionality of Gravity Forms, a popular form plugin for WordPress. With this plugin, you can monitor the number of characters you input into form fields, ensuring that you stay within the specified character limits. Additionally, it adds a character count feature to Gravity Forms, offering users a visual recommendation without imposing strict character limits. This recommendation serves as a helpful guide for users as they interact with your forms.
 
 **Key Features:**
