@@ -5,6 +5,8 @@ Description: Adds a character count feature to Gravity Forms.
 Version: 0.2.21
 Author: Artur Nalobin
 Plugin URI: https://github.com/scriptvoyager/character-counter-for-gravity-forms/
+License: GPLv3
+License URI: https://www.gnu.org/licenses/gpl-3.0.html
 */
 
 // Default css settings
