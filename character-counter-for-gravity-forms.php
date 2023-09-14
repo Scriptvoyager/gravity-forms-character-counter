@@ -2,10 +2,32 @@
 /*
 Plugin Name: Character Counter for Gravity Forms
 Description: Adds a character count feature to Gravity Forms.
-Version: 0.2.11
+Version: 0.2.21
 Author: Artur Nalobin
 Plugin URI: https://github.com/scriptvoyager/character-counter-for-gravity-forms/
 */
+
+// Default css settings
+function get_default_css() {
+    $default_css .= "/* Basic style for character counter display */\n";
+    $default_css .= ".char-count {\n";
+    $default_css .= "    display: block;\n";
+    $default_css .= "    margin-top: 5px;\n";
+    $default_css .= "    font-size: 0.9em;\n";
+    $default_css .= "    color: #666;\n";
+    $default_css .= "}\n";
+    $default_css .= "/* Character counter exceeds the threshold */\n";
+    $default_css .= ".char-count-red {\n";
+    $default_css .= "    color: red;\n";
+    $default_css .= "}\n";
+    
+    return $default_css;
+}
+
+// Default char count text
+function gforms_char_count_default_text() {
+    return '#char_count characters (Please max. #max_char characters)';
+}
 
 // Adding backend settings in Gravity Forms for "Show Character Count" and the recommendation
 add_action( 'gform_field_standard_settings', 'my_custom_field_standard_settings', 10, 2 );
@@ -82,7 +104,8 @@ function my_custom_gform_field_content( $content, $field, $value, $lead_id, $for
 
             function updateCharCount() {
                 var length = inputField.val().length;
-                charCountSpan.text(length + ' characters (Please max. ' + {$recommendation} + ' characters)');
+				var text_format = " . json_encode(get_option('gforms_char_count_text_format', gforms_char_count_default_text())) . ";
+                charCountSpan.text(text_format.replace('#char_count', length).replace('#max_char', {$recommendation}));
                 if(length > {$recommendation} && {$recommendation} > 0) {
                     charCountSpan.addClass('char-count-red');
                 } else {
@@ -104,18 +127,12 @@ function my_custom_gform_field_content( $content, $field, $value, $lead_id, $for
 // Settings menu and pages
 
 function gforms_char_count_settings_page() {
-    // Checks if the reset button has been pressed and resets the default CSS.
-    if (isset($_POST['reset_css'])) {
-		$default_css = get_default_css();  // Here we call the function
-		update_option('gforms_char_count_css', $default_css);
-    }
-
     ?>
     <div class="wrap">
         <h2>Character Counter for Gravity Forms</h2>
 
         <style>
-            input[name="reset_css"] {
+            button[name="reset_css"] {
                 margin-right: 10px;
             }
         </style>
@@ -128,11 +145,17 @@ function gforms_char_count_settings_page() {
             submit_button();
             ?>
         </form>
+        
+		<script>
+			document.addEventListener('DOMContentLoaded', function(){
+				document.querySelector('button[name="reset_css"]').addEventListener('click', function(event){
+					event.preventDefault(); // Verhindert das Absenden des Formulars
+					let defaultCss = <?php echo json_encode(get_default_css()); ?>;
+					document.querySelector('textarea[name="gforms_char_count_css"]').value = defaultCss;
+				});
+			});
+		</script>
 
-        <!-- Separate form for the reset button -->
-        <form method="post">
-            <input type="submit" name="reset_css" value="Reset to Default CSS" class="button button-secondary">
-        </form>
     </div>
     <?php
 }
@@ -168,20 +191,64 @@ function gforms_char_count_register_settings() {
         "gforms-char-count", 
         "gforms_char_count_main"
     );
+	
+	register_setting(
+		"gforms_char_count_options", 
+		"gforms_char_count_text_format"
+	);
+
+	add_settings_field(
+		"gforms-char-count-text-format", 
+		"Character Counter Text Format", 
+		"gforms_char_count_display_text_format", 
+		"gforms-char-count", 
+		"gforms_char_count_main"
+	);
 }
 add_action("admin_init", "gforms_char_count_register_settings");
+
+function gforms_char_count_display_text_format() {
+    $text_format = get_option('gforms_char_count_text_format', gforms_char_count_default_text()); // Verwenden Sie den Funktionsaufruf für den Standardwert
+    $default_text = gforms_char_count_default_text();
+    ?>
+    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <input type="text" name="gforms_char_count_text_format" value="<?php echo esc_attr($text_format); ?>" size="50" />
+        <div style="margin-left:20px; font-size:0.9em; flex: 1;">
+            <p class="description">Use #char_count for the current character count and #max_char for the maximum character count.</p>
+			<p><strong>Default Text:</strong></p>
+            <p><?php echo gforms_char_count_default_text(); ?></p>
+			<form method="post">
+			<button type="button" id="loadDefaultText" class="button button-secondary">Load Default Text</button>
+			</form>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const defaultTextBtn = document.querySelector('#loadDefaultText');
+            const inputField = document.querySelector('input[name="gforms_char_count_text_format"]');
+
+            defaultTextBtn.addEventListener('click', function() {
+                inputField.value = "<?php echo $default_text; ?>";
+            });
+        });
+    </script>
+    <?php
+}
 
 function gforms_char_count_display_css() {
     $css = get_option('gforms_char_count_css');  // Here we get the CSS from the database
     $default_css = get_default_css(); // Here we get the default CSS
     ?>
-    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-        <textarea name="gforms_char_count_css" rows="15" cols="50"><?php echo esc_textarea($css); ?></textarea>
-        <div style="margin-left:20px; font-size:0.9em; flex: 1;">
-            <strong>Default CSS Einstellungen:</strong><br>
-            <pre style="white-space: pre-wrap; word-wrap: break-word;"><?php echo esc_html($default_css); ?></pre>
-        </div>
-    </div>
+	<div style="display: flex; justify-content: space-between; align-items: flex-start;">
+		<textarea name="gforms_char_count_css" rows="15" cols="50"><?php echo esc_textarea($css); ?></textarea>
+		<div style="margin-left:20px; font-size:0.9em; flex: 1;">
+			<strong>Default CSS Settings:</strong><br>
+			<pre style="white-space: pre-wrap; word-wrap: break-word;"><?php echo esc_html($default_css); ?></pre>
+			<form method="post">
+				<button type="button" name="reset_css" class="button button-secondary">Load Default CSS</button>
+			</form>
+		</div>
+	</div>
     <?php
 }
 
@@ -194,18 +261,3 @@ function gforms_char_count_enqueue_styles() {
 }
 add_action('wp_enqueue_scripts', 'gforms_char_count_enqueue_styles', 100);
 
-function get_default_css() {
-    $default_css .= "/* Basic style for character counter display */\n";
-    $default_css .= ".char-count {\n";
-    $default_css .= "    display: block;\n";
-    $default_css .= "    margin-top: 5px;\n";
-    $default_css .= "    font-size: 0.9em;\n";
-    $default_css .= "    color: #666;\n";
-    $default_css .= "}\n";
-    $default_css .= "/* Character counter exceeds the threshold */\n";
-    $default_css .= ".char-count-red {\n";
-    $default_css .= "    color: red;\n";
-    $default_css .= "}\n";
-    
-    return $default_css;
-}
