@@ -1,10 +1,10 @@
 <?php
 /*
-Plugin Name: Gravity Forms Character Counter
+Plugin Name: Character Counter for Gravity Forms
 Description: Adds a character count feature to Gravity Forms.
 Version: 0.2.11
 Author: Artur Nalobin
-Plugin URI: https://example.com/mein-plugin
+Plugin URI: https://github.com/scriptvoyager/character-counter-for-gravity-forms/
 */
 
 // Adding backend settings in Gravity Forms for "Show Character Count" and the recommendation
@@ -16,7 +16,7 @@ function my_custom_field_standard_settings( $position, $form_id ) {
             <!-- Horizontal line before the new settings -->
             <hr>
             <!-- This is a manually added setting -->
-            <p>Gravity Forms Character Counter</p>
+            <p>Character Counter for Gravity Forms</p>
             <input type="checkbox" id="field_show_character_count" />
             <label for="field_show_character_count" class="inline">
                 Show character count below the field
@@ -112,7 +112,7 @@ function gforms_char_count_settings_page() {
 
     ?>
     <div class="wrap">
-        <h2>Gravity Forms Character Counter Settings</h2>
+        <h2>Character Counter for Gravity Forms</h2>
 
         <style>
             input[name="reset_css"] {
@@ -139,8 +139,8 @@ function gforms_char_count_settings_page() {
 
 function gforms_char_count_add_settings_page() {
     add_options_page(
-        "Gravity Forms Character Counter",
-        "Gravity Forms Character Counter",
+        "Character Counter for Gravity Forms",
+        "Character Counter for Gravity Forms",
         "manage_options",
         "gforms-char-count",
         "gforms_char_count_settings_page"
